@@ -2,23 +2,28 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
+import java.util.LinkedList;
 
+import javax.imageio.ImageIO;
+//
+//import org.opencv.core.Core;
+//import org.opencv.core.CvType;
+//import org.opencv.core.Mat;
+//
 public class MainClass
 {
+	static int height,width;
+	static int red,green,blue;
 	private static int[][] redA = new int[2][9];
 	private static int[][] yellowA = new int[2][9];
 	private static int[][] blueA = new int[2][9];
 	private static int redP=0,yellowP=0, blueP=0;
-	
+	private static LinkedList<int[]> Borders = new LinkedList<int[]>();
 	private static int[] blueC = new int[2];
 	private static int[] redC = new int[2];
 	private static int[] greenC = new int[2];
 	private static int[] yellowC = new int[2];
-	
+	static Borderlines border;
 	public static void main( String[] args )
 	{
 
@@ -29,17 +34,17 @@ public class MainClass
 		BufferedImage bfImage;
 		try {
 			bfImage = ImageIO.read(new File("testImg.png"));
-			int height = bfImage.getHeight();
-			int width = bfImage.getWidth();
+			height = bfImage.getHeight();
+			width = bfImage.getWidth();
+			
 			for(int i=0; i<height; i++){
-				//System.out.println("");
-				for(int j=0; j<width; j++){
-					
-					Color c = new Color(bfImage.getRGB(i,j));
-					int red = c.getRed();
-					int green = c.getGreen();
-					int blue = c.getBlue();
 
+				for(int j=0; j<width; j++){
+					Color c = new Color(bfImage.getRGB(j,i));
+					red = c.getRed();
+					green = c.getGreen();
+					blue = c.getBlue();
+					findBorders(j,i);
 					if(red==255 && green==0 && blue==0){ redA[0][redP]=j; redA[1][redP]=i; redP++;}
 					if(red==255 && green==255 && blue==0){ yellowA[0][yellowP]=j; yellowA[1][yellowP]=i; yellowP++;}
 					if(red==0 && green==0 && blue==255){ blueA[0][blueP]=j; blueA[1][blueP]=i; blueP++;}
@@ -49,34 +54,9 @@ public class MainClass
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		redC = findC(redA);
-		yellowC = findC(yellowA);
-		blueC = findC(blueA);
-		
-		//printP();
+		directions();
+		getBorders();
 
-		double direcRobot = getAngle(yellowC, blueC);
-		System.out.println(direcRobot);
-		double direcBall = getAngle(redC, yellowC);
-		System.out.println(direcBall);
-		double diff=0;
-
-		diff = direcBall - direcRobot;
-		if(diff > 180) { diff = diff - 360; }
-		if(diff < -180) { diff = diff + 360; }
-		System.out.println(diff);
-
-	}
-	
-	public static void printP(){
-//		for(int i = 0 ; i<redA.length; i++){
-//			System.out.println("x coord = "+redA[i]+" y coord = "+redA[i+1]);
-//			i++;
-//		}
-		System.out.println("center of blue is: x="+blueC[0]+" y="+blueC[1]);
-		System.out.println("center of red is: x="+redC[0]+" y="+redC[1]);
-		System.out.println("center of yellow: x="+yellowC[0]+" y="+yellowC[1]);
 	}
 	
 	public static int[] findC(int[][] Array){
@@ -91,8 +71,43 @@ public class MainClass
 		return Center;
 	}
 	
+	public static void directions(){
+		redC = findC(redA);
+		yellowC = findC(yellowA);
+		blueC = findC(blueA);
+		double direcRobot = getAngle(yellowC, blueC);
+		System.out.println(direcRobot);
+		double direcBall = getAngle(redC, yellowC);
+		System.out.println(direcBall);
+		double diff=0;
+
+		diff = direcBall - direcRobot;
+		if(diff > 180) { diff = diff - 360; }
+		if(diff < -180) { diff = diff + 360; }
+		System.out.println(diff);
+	}
 	public static double getAngle(int[] target1, int[] target2){
 		double angle = Math.toDegrees(Math.atan2(target1[0] - target2[0], target1[1] - target2[1]));
 		return angle;
 	}
+	
+	public static void findBorders(int x, int y){
+		int[] loc = {x,y};
+		if (red>240 && green>240 && blue>240){
+			Borders.add(loc);
+			int[] temp = Borders.getLast();
+		}
+	}
+	
+	public static void getBorders(){
+		int x1bord = Borderlines.borderLineRight(Borders);
+		int y1bord = Borderlines.borderLineDown(Borders);
+		int y2bord = Borderlines.borderLineUp(Borders);
+		int x2bord = Borderlines.borderLineLeft(Borders);
+		System.out.println("first border horizontal lefttop to right="+x1bord);
+		System.out.println("second border vertical lefttop to down="+y1bord);
+		System.out.println("third border vertical rightbottom to up="+y2bord);
+		System.out.println("fourth border horizontal rightbottom to left="+x2bord);
+	}
+
 }
