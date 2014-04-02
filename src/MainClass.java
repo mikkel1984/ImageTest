@@ -24,16 +24,20 @@ public class MainClass
 	private static int[] greenC = new int[2];
 	private static int[] yellowC = new int[2];
 	static Borderlines border;
-	public static void main( String[] args )
+	
+	public static void main( String[] args ) throws IOException
 	{
 
+		
 		//      System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
 		//      Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
 		//      System.out.println( "mat = " + mat.dump() );
 
+		OpenCVdetect.ProcessImage();
+		
 		BufferedImage bfImage;
 		try {
-			bfImage = ImageIO.read(new File("testImg.png"));
+			bfImage = ImageIO.read(new File("testImage.jpg"));
 			height = bfImage.getHeight();
 			width = bfImage.getWidth();
 			
@@ -55,8 +59,14 @@ public class MainClass
 			e.printStackTrace();
 		}
 		directions();
-		getBorders();
-
+		//getBorders();
+		LinkedList<int[]> circles = Circles.detectCircles(Borders);
+		int i=0;
+		for(int[] c : circles){
+			System.out.println("number of circle middles:" + circles.size());
+			System.out.println("circle:"+i+" x: "+c[0]+" y: "+c[1]);
+			i++;
+		}
 	}
 	
 	public static int[] findC(int[][] Array){
@@ -89,25 +99,11 @@ public class MainClass
 	public static double getAngle(int[] target1, int[] target2){
 		double angle = Math.toDegrees(Math.atan2(target1[0] - target2[0], target1[1] - target2[1]));
 		return angle;
-	}
-	
+	}	
 	public static void findBorders(int x, int y){
 		int[] loc = {x,y};
 		if (red>240 && green>240 && blue>240){
 			Borders.add(loc);
-			int[] temp = Borders.getLast();
 		}
 	}
-	
-	public static void getBorders(){
-		int x1bord = Borderlines.borderLineRight(Borders);
-		int y1bord = Borderlines.borderLineDown(Borders);
-		int y2bord = Borderlines.borderLineUp(Borders);
-		int x2bord = Borderlines.borderLineLeft(Borders);
-		System.out.println("first border horizontal lefttop to right="+x1bord);
-		System.out.println("second border vertical lefttop to down="+y1bord);
-		System.out.println("third border vertical rightbottom to up="+y2bord);
-		System.out.println("fourth border horizontal rightbottom to left="+x2bord);
-	}
-
 }
